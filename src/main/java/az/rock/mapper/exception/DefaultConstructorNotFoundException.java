@@ -1,4 +1,4 @@
-package az.rock.mapper;
+package az.rock.mapper.exception;
 
 public class DefaultConstructorNotFoundException extends Exception {
     public DefaultConstructorNotFoundException(){
