@@ -11,28 +11,57 @@ import java.util.Optional;
 public class BasicMapper<D,E> implements RockMapper<D> {
 
 
-    private final Class<D> dClass;
+    private  Class<D> targetClass;
 
-    private final E entityObject;
+    private  E entityObject;
 
     private  D dtoInstance;
 
 
-    Reflections reflections = RockReflection.init().REFLECTIONS;
+    private final Reflections reflections = RockReflection.init().REFLECTIONS;
 
-    public BasicMapper(E entityObject,Class<D> dClass){
+    public BasicMapper(E entityObject,Class<D> targetClass){
        this.entityObject = entityObject;
-       this.dClass = dClass;
+       this.targetClass = targetClass;
+    }
+
+    public BasicMapper(){}
+
+    public void setDTOType(Class<D> dClass) {
+        this.targetClass = dClass;
+    }
+
+    public void setEntityObject(E entityObject) {
+        this.entityObject = entityObject;
     }
 
     @Override
-    public D map() {
-        return null;
+    public D map() throws DefaultConstructorNotFoundException, IllegalAccessException {
+        Field[] dtoFields = this.getDTOFields();
+        Field[] eFields = this.getEntityField();
+
+        for (int i = 0;i < dtoFields.length;i++){
+            for (int k = 0; k < eFields.length;k++){
+                synchronized (map()){
+                        if(dtoFields[i].getName().equals(eFields[k].getName())){
+                        dtoFields[i].setAccessible(true);
+                        eFields[k].setAccessible(true);
+
+                        dtoFields[i].set(this.dtoInstance,eFields[k].get(this.entityObject));
+
+                        dtoFields[i].setAccessible(false);
+                        eFields[k].setAccessible(false);
+                        break;
+                    }
+                }
+            }
+        }
+        return this.dtoInstance;
     }
 
     private Optional<D> newInstance() throws DefaultConstructorNotFoundException {
         try {
-            return Optional.of(this.dClass.getConstructor().newInstance());
+            return Optional.of(this.targetClass.getConstructor().newInstance());
         }catch (NoSuchMethodException e){
             throw new DefaultConstructorNotFoundException();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
