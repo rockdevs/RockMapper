@@ -42,7 +42,7 @@ public class BasicMapper<D,E> implements RockMapper<D> {
 
         for (int i = 0;i < dtoFields.length;i++){
             for (int k = 0; k < eFields.length;k++){
-                synchronized (map()){
+                synchronized (BasicMapper.class){
                         if(dtoFields[i].getName().equals(eFields[k].getName())){
                         dtoFields[i].setAccessible(true);
                         eFields[k].setAccessible(true);
@@ -72,14 +72,14 @@ public class BasicMapper<D,E> implements RockMapper<D> {
 
 
     private Field[] getEntityField(){
-        return this.entityObject.getClass().getFields();
+        return this.entityObject.getClass().getDeclaredFields();
     }
 
 
     private Field[] getDTOFields() throws DefaultConstructorNotFoundException {
         Optional<D> optionalDTOInstance = this.newInstance();
         optionalDTOInstance.ifPresent(d -> this.dtoInstance = d);
-        return this.dtoInstance.getClass().getFields();
+        return this.dtoInstance.getClass().getDeclaredFields();
     }
 
 }
