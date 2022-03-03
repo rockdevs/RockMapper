@@ -21,7 +21,7 @@ public class Entity {
     }
 }
 ```
-
+The fields we want to be added to the DTO - must have the same name as the fields in the Entity class.
 ```java
 public class ExampleDTO {
     private String name;
