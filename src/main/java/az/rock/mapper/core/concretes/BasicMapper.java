@@ -1,31 +1,27 @@
 package az.rock.mapper.core.concretes;
 
 import az.rock.mapper.DefaultConstructorNotFoundException;
-import az.rock.mapper.annotation.RockEntity;
 import az.rock.mapper.core.abstracts.RockMapper;
 import org.reflections.Reflections;
-import org.reflections.scanners.Scanners;
-import org.reflections.util.ClasspathHelper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 public class BasicMapper<D,E> implements RockMapper<D> {
 
 
     private final Class<D> dClass;
 
-    private final Class<E> eClass;
+    private final E entityObject;
 
-    private  Field[] dtoFields;
-
-    private  Field[] entityFields;
+    private  D dtoInstance;
 
 
     Reflections reflections = RockReflection.init().REFLECTIONS;
 
-    public BasicMapper(Class<E> eClass,Class<D> dClass){
-       this.eClass = eClass;
+    public BasicMapper(E entityObject,Class<D> dClass){
+       this.entityObject = entityObject;
        this.dClass = dClass;
     }
 
@@ -34,26 +30,27 @@ public class BasicMapper<D,E> implements RockMapper<D> {
         return null;
     }
 
-    private D init() throws DefaultConstructorNotFoundException {
+    private Optional<D> newInstance() throws DefaultConstructorNotFoundException {
         try {
-            return this.dClass.getConstructor().newInstance();
+            return Optional.of(this.dClass.getConstructor().newInstance());
         }catch (NoSuchMethodException e){
             throw new DefaultConstructorNotFoundException();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
-        return null;
+        return Optional.empty();
     }
 
 
-
-    private void getEntityField(){
-
+    private Field[] getEntityField(){
+        return this.entityObject.getClass().getFields();
     }
 
 
-    private void getDTOFields(){
-
+    private Field[] getDTOFields() throws DefaultConstructorNotFoundException {
+        Optional<D> optionalDTOInstance = this.newInstance();
+        optionalDTOInstance.ifPresent(d -> this.dtoInstance = d);
+        return this.dtoInstance.getClass().getFields();
     }
 
 }
